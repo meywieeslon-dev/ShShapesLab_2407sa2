@@ -1,20 +1,20 @@
-﻿using System.Windows;
-using System.Windows.Controls;
-using ShapesLab_Final.Creators;
+﻿using ShapesLab_Final.Factories;  
 using ShapesLab_Final.Figures;
+using System.Windows;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Controls;
 
 namespace ShapesLab_Final
 {
     public partial class MainWindow : Window
     {
-        private CircleCreator _circleCreator;
-        private SquareCreator _squareCreator;
-        private TriangleCreator _triangleCreator;
+        private IFigureFactory _currentFactory;  // ← Теперь ОДНА фабрика!
 
         public MainWindow()
         {
             InitializeComponent();
-            ColorComboBox.SelectedIndex = 0; 
+            ColorComboBox.SelectedIndex = 0;
         }
 
         private void ColorComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -22,31 +22,18 @@ namespace ShapesLab_Final
             var selectedItem = (ComboBoxItem)ColorComboBox.SelectedItem;
             if (selectedItem == null) return;
 
-            switch (selectedItem.Content.ToString())
+            _currentFactory = selectedItem.Content.ToString() switch
             {
-                case "Красный":
-                    _circleCreator = new RedCircleCreator();
-                    _squareCreator = new RedSquareCreator();
-                    _triangleCreator = new RedTriangleCreator();
-                    break;
-                case "Синий":
-                    _circleCreator = new BlueCircleCreator();
-                    _squareCreator = new BlueSquareCreator();
-                    _triangleCreator = new BlueTriangleCreator();
-                    break;
-                case "Зелёный":
-                    _circleCreator = new GreenCircleCreator();
-                    _squareCreator = new GreenSquareCreator();
-                    _triangleCreator = new GreenTriangleCreator();
-                    break;
-                default:
-                    return;
-            }
+                "Красный" => new RedFactory(),
+                "Синий" => new BlueFactory(),
+                "Зелёный" => new GreenFactory(),
+                _ => new RedFactory()
+            };
         }
 
         private void CreateButton_Click(object sender, RoutedEventArgs e)
         {
-            if (_circleCreator == null)
+            if (_currentFactory == null)
             {
                 MessageBox.Show("Сначала выберите цвет!");
                 return;
@@ -54,10 +41,12 @@ namespace ShapesLab_Final
 
             ShapesPanel.Children.Clear();
 
-            var circle = _circleCreator.CreateCircle();
-            var square = _squareCreator.CreateSquare();
-            var triangle = _triangleCreator.CreateTriangle();
+           
+            var circle = _currentFactory.CreateCircle();
+            var square = _currentFactory.CreateSquare();
+            var triangle = _currentFactory.CreateTriangle();
 
+       
             ShapesPanel.Children.Add(circle.CreateUIElement(80));
             ShapesPanel.Children.Add(square.CreateUIElement(80));
             ShapesPanel.Children.Add(triangle.CreateUIElement(80));
